@@ -1,0 +1,46 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+# Custom Ignite cluster's name.
+ name: ignite-service
+ namespace: my-namespace
+spec:
+# A number of Ignite pods to be started by Kubernetes initially.
+ replicas: 1
+ template:
+  metadata:
+    labels:
+      # This label has to be added to the selector's section of
+      # ignite-service.yaml so that the Kubernetes Ignite lookup service
+      # can easily track all Ignite pods available deployed so far.
+      app: ignite-service
+  spec:
+    serviceAccountName: ignite-service
+    containers:
+      # Custom Ignite pod name.
+    - name: ignite-node
+      # Ignite Docker image. Kubernetes IP finder is supported starting from
+      # Apache Ignite 2.6.0
+      image: apacheignite/ignite:2.6.0
+      env:
+      # Ignite's Docker image parameter. Adding the jar file that
+      # contain TcpDiscoveryKubernetesIpFinder implementation.
+      - name: OPTION_LIBS
+        value: ignite-kubernetes
+      - name: NAMESPACE
+        value: "my-namespace"
+      - name: SERVICENAME
+        value: "ignite-service"
+      - name: CONFIG_URI
+        value: https://raw.githubusercontent.com/gromtech/ignite-k8s-gce-assets/master/configs/default-config-1.xml
+      - name: IGNITE_QUIET
+        value: "false"
+      ports:
+      # Ports to open.
+      # Might be optional depending on your Kubernetes environment.
+      - containerPort: 11211 # REST port number.
+      - containerPort: 47100 # communication SPI port number.
+      - containerPort: 47500 # discovery SPI port number.
+      - containerPort: 49112 # JMX port number.
+      - containerPort: 10800 # SQL port number.
+
